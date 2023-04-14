@@ -8,7 +8,7 @@ const  CounsellorModel  = require("../Model/AddCounsellor");
 const authentication = require("../Middleware/authentication");
 
 
-
+const upload = require("../Middleware/multermiddleware");
 
 app.get("/", async (req, res) => {
 
@@ -21,6 +21,12 @@ app.get("/", async (req, res) => {
 
     res.status(500).send("Error: " + error.message);
   }
+});
+
+app.get("/:id", async (req, res) => {
+  const id=req.params.id
+  const user = await CounsellorModel.findById({"_id":id});
+  res.send(user).status(200);
 });
 
 app.post("/createcounsellor",authentication, async (req, res) => {
@@ -45,15 +51,15 @@ app.post("/createcounsellor",authentication, async (req, res) => {
     
 });
 
-app.patch("/:id",async(req,res)=>{
-  const id=req.params.id;
-  try{
-    const updatedCounsellor=await CounsellorModel.findByIdAndUpdate({"_id":id},{...req.body})
-  res.send("Updated the counsellor")
-  }catch(err){
-    res.send("counsellor not updated")
-  }
-})
+// app.patch("/:id",async(req,res)=>{
+//   const id=req.params.id;
+//   try{
+//     const updatedCounsellor=await CounsellorModel.findByIdAndUpdate({"_id":id},{...req.body})
+//   res.send("Updated the counsellor")
+//   }catch(err){
+//     res.send("counsellor not updated")
+//   }
+// })
 
 app.post("/login", async (req, res) => {
 
@@ -84,4 +90,90 @@ app.post("/login", async (req, res) => {
     }
 });
 
-module.exports = app ;
+app.patch("/:id", upload.single("image") ,async (req, res) => {
+  console.log("counsellor")
+  const id = req.params.id;
+  console.log(id,96);
+  console.log(req.body,97);
+  const { firstname, email,city,postalcode, address, zipcode, country,web} =
+    req.body;
+    console.log(req.body)
+
+  
+  const user = await CounsellorModel.find({ _id:id });
+  
+  
+  if (user) {
+    
+    if (req.file) {
+      const path = req.file.path;
+          const superadmin = await CounsellorModel.findByIdAndUpdate(
+            { _id: id },
+            {
+              name: firstname,
+              email: email,
+              city: city,
+              address: address,
+              country: country,
+              zipcode: postalcode,
+              image: path,
+              web:web,
+            }
+          );
+          await superadmin.save();
+         
+          res.send({ msg: "super admin is created" });
+           
+    }
+    else if(req.file === undefined){
+   
+      const superadmin = await CounsellorModel.findByIdAndUpdate(
+        { _id: id },
+        {
+          name: firstname,
+          email: email,
+          city: city,
+          address: address,
+          country: country,
+          web:web,
+          zipcode: postalcode,
+        }
+      );
+      await superadmin.save();
+      
+      res.send({ msg: "super admin is created" });
+       
+    }
+    
+    else {
+      bcrypt.hash(password, saltRounds, async (err, hash) => {
+        if (err) {
+          res.send("super admin is not registered");
+        } else {
+          const superadmin = await CounsellorModel.findByIdAndUpdate(
+            { _id: id },
+            {
+              firstname: firstname,
+              lastname: lastname,
+              email: email,
+              password: hash,
+              address: address,
+              web:web,
+              zipcode: postalcode,
+              country: country,
+            }
+          );
+          await superadmin.save();
+          console.log(superadmin,118)
+          res.send({ msg: "super admin is created" });
+        }
+      });
+    }
+  } else {
+    res.send("This email is already exist");
+  }
+});
+
+
+
+module.exports = app 
