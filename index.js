@@ -10,7 +10,7 @@ const connection=require("./config/db")
 
 const multer=require("multer")
 
-app.use(cors())
+app.use(cors({origin:`https://crmbackend-wmra.vercel.app/`}))
 
 app.use(express.json())
 
