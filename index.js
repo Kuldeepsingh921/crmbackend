@@ -10,7 +10,7 @@ const connection=require("./config/db")
 
 const multer=require("multer")
 
-app.use(cors({origin: "https://crm-drab-theta.vercel.app/"}))
+app.use(cors({origin: "*"}))
 
 app.use(express.json())
 
